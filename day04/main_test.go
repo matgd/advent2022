@@ -1,0 +1,23 @@
+package main
+
+import (
+	"testing"
+)
+
+func TestTask1(t *testing.T) {
+	got := Task1("input_example.txt")
+	expected := 2
+	if got != expected {
+		t.Log("Got", got, " expected", expected)
+		t.Fail()
+	}
+}
+
+func TestTask2(t *testing.T) {
+	got := Task2("input_example.txt")
+	expected := 4
+	if got != expected {
+		t.Log("Got", got, " expected", expected)
+		t.Fail()
+	}
+}
