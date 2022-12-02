@@ -59,3 +59,17 @@ func ReadFileLinesFloat64(path string) []float64 {
 
 	return linesFloat
 }
+
+type AccumulatorType interface {
+	string | int64 | int32 | float64 | uint64 | uint32
+}
+type ReduceFunc[A AccumulatorType, V comparable] interface {
+	Reduce(accumulator A, currentValue V) A
+}
+
+func Reduce[A AccumulatorType, V comparable](collection []V, accumulator A, reducer ReduceFunc[A, V]) A {
+	for _, value := range collection {
+		accumulator += reducer.Reduce(accumulator, value)
+	}
+	return accumulator
+}
