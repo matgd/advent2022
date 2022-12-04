@@ -103,5 +103,5 @@ func Task2(inputFile string) int {
 
 func main() {
 	fmt.Println("[Task 1]", Task1("input.txt"))
-	fmt.Println("[Task 1]", Task2("input.txt"))
+	fmt.Println("[Task 2]", Task2("input.txt"))
 }
