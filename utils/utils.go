@@ -4,12 +4,7 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"strconv"
 )
-
-type InputLine interface {
-	string | int64 | float64
-}
 
 func ReadFileLines(path string) []string {
 	file, err := os.Open(path)
@@ -28,48 +23,4 @@ func ReadFileLines(path string) []string {
 		log.Fatalf("Couldn't parse contents of file '%s' due to error: %s\n", path, scanner.Err())
 	}
 	return lines
-}
-
-func ReadFileLinesInt64(path string) []int64 {
-	lines := ReadFileLines(path)
-
-	linesInt := make([]int64, len(lines))
-	for _, line := range lines {
-		lineInt, err := strconv.ParseInt(line, 10, 64)
-		if err != nil {
-			log.Fatalf("Couldn't parse line '%s' due to error: %s\n", line, err)
-		}
-		linesInt = append(linesInt, lineInt)
-	}
-
-	return linesInt
-}
-
-func ReadFileLinesFloat64(path string) []float64 {
-	lines := ReadFileLines(path)
-
-	linesFloat := make([]float64, len(lines))
-	for _, line := range lines {
-		lineFloat, err := strconv.ParseFloat(line, 64)
-		if err != nil {
-			log.Fatalf("Couldn't parse line '%s' due to error: %s\n", line, err)
-		}
-		linesFloat = append(linesFloat, lineFloat)
-	}
-
-	return linesFloat
-}
-
-type AccumulatorType interface {
-	string | int64 | int32 | float64 | uint64 | uint32
-}
-type ReduceFunc[A AccumulatorType, V comparable] interface {
-	Reduce(accumulator A, currentValue V) A
-}
-
-func Reduce[A AccumulatorType, V comparable](collection []V, accumulator A, reducer ReduceFunc[A, V]) A {
-	for _, value := range collection {
-		accumulator += reducer.Reduce(accumulator, value)
-	}
-	return accumulator
 }
