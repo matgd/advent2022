@@ -9,7 +9,7 @@ import (
 func getCharPriorities() map[string]int {
 	priorities := map[string]int{}
 
-	currentPriority := 0
+	currentPriority := 1
 	for ch := 'a'; ch <= 'z'; ch++ {
 		priorities[string(ch)] = currentPriority
 		currentPriority++
