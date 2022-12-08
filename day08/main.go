@@ -143,7 +143,7 @@ func Day8(inputFile string) uint64 {
 	directions := []Direction{UpDown, DownUp, LeftRight, RightLeft}
 
 	wg := new(sync.WaitGroup)
-	wg.Add(4)
+	wg.Add(len(directions))
 
 	for _, direction := range directions {
 		func(direction Direction) {
