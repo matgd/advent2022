@@ -8,8 +8,9 @@ import (
 )
 
 type Tree struct {
-	height  int8
-	visible bool
+	height      int8
+	visible     bool
+	scenicScore uint64
 }
 
 type Forest struct {
@@ -45,7 +46,8 @@ func (f Forest) HorizontalLength() int {
 	return len(f.trees[0])
 }
 
-func (f *Forest) MarkVisible(direction Direction) {
+func (f *Forest) MarkVisible(direction Direction, wg *sync.WaitGroup) {
+	defer wg.Done()
 	maxHeight := int8(9)
 	highestHeight := int8(-1)
 
@@ -146,15 +148,112 @@ func Day8(inputFile string) uint64 {
 	wg.Add(len(directions))
 
 	for _, direction := range directions {
-		func(direction Direction) {
-			forest.MarkVisible(direction)
-			defer wg.Done()
-		}(direction)
+		forest.MarkVisible(direction, wg)
 	}
 
 	return forest.CountVisible()
 }
 
+func (f Forest) ScenicScore(row, col int) uint64 {
+	seenTreesFromAngles := [4]uint64{0, 0, 0, 0}
+	treeHeight := f.trees[row][col].height
+
+	// Check up
+	for i := row - 1; i >= 0; i-- {
+		checkedHeight := f.trees[i][col].height
+		if checkedHeight <= treeHeight {
+			seenTreesFromAngles[0]++
+			if checkedHeight == treeHeight {
+				break
+			}
+		}
+		if checkedHeight > treeHeight {
+			seenTreesFromAngles[0]++
+			break
+		}
+	}
+
+	// Check down
+	for i := row + 1; i < len(f.trees); i++ {
+		checkedHeight := f.trees[i][col].height
+		if checkedHeight <= treeHeight {
+			seenTreesFromAngles[1]++
+			if checkedHeight == treeHeight {
+				break
+			}
+		}
+		if checkedHeight > treeHeight {
+			seenTreesFromAngles[1]++
+			break
+		}
+	}
+
+	// Check left
+	for i := col - 1; i >= 0; i-- {
+		checkedHeight := f.trees[row][i].height
+		if checkedHeight <= treeHeight {
+			seenTreesFromAngles[2]++
+			if checkedHeight == treeHeight {
+				break
+			}
+		}
+		if checkedHeight > treeHeight {
+			seenTreesFromAngles[2]++
+			break
+		}
+	}
+
+	// Check right
+	for i := col + 1; i < len(f.trees[0]); i++ {
+		checkedHeight := f.trees[row][i].height
+		if checkedHeight <= treeHeight {
+			seenTreesFromAngles[3]++
+			if checkedHeight == treeHeight {
+				break
+			}
+		}
+		if checkedHeight > treeHeight {
+			seenTreesFromAngles[3]++
+			break
+		}
+	}
+
+	totalScore := uint64(1)
+	for _, score := range seenTreesFromAngles {
+		totalScore *= score
+	}
+	if totalScore > 4_200_000 {
+		fmt.Println("row:", row, "col:", col, "score:", totalScore)
+		fmt.Println("seenTreesFromAngles =>", seenTreesFromAngles)
+		fmt.Println("totalScore =>", totalScore)
+
+	}
+	return totalScore
+}
+
+func (f Forest) BestScenicScore() uint64 {
+	bestScenicScore := uint64(0)
+
+	for row, trees := range f.trees {
+		for col := range trees {
+			scenicScore := f.ScenicScore(row, col)
+			if scenicScore > bestScenicScore {
+				bestScenicScore = scenicScore
+			}
+		}
+	}
+
+	return bestScenicScore
+}
+
+func Day8_2(inputFile string) uint64 {
+	lines := utils.ReadFileLines(inputFile)
+	forest := ForestFrom(lines)
+
+	return forest.BestScenicScore()
+}
+
 func main() {
 	fmt.Println("Day 8, Part 1:", Day8("input.txt"))
+	fmt.Println("Day 8, Part 2:", Day8_2("input.txt"))
 }
