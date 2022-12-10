@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -26,12 +27,46 @@ type InstructionQueue struct {
 	xVal         int
 	historicXVal []int
 	instructions []*Instruction
+	crt          *CRT
+}
+
+type CRT struct {
+	litPixel     []bool
+	width        int
+	height       int
+	litPixelMark rune
+	dimPixelMark rune
+}
+
+func (c CRT) String() string {
+	var sb strings.Builder
+	for y := 0; y < c.height; y++ {
+		for x := 0; x < c.width; x++ {
+			lit := c.litPixel[x+y*c.width]
+			if lit {
+				sb.WriteRune(c.litPixelMark)
+			} else {
+				sb.WriteRune(c.dimPixelMark)
+			}
+		}
+		sb.WriteRune('\n')
+	}
+	return sb.String()
 }
 
 func NewInstructionQueue(maxQueueSize int) *InstructionQueue {
+	crt := &CRT{
+		width:        40,
+		height:       6,
+		litPixel:     make([]bool, 40*6),
+		litPixelMark: '█',
+		dimPixelMark: ' ',
+	}
+
 	return &InstructionQueue{
 		instructions: make([]*Instruction, maxQueueSize),
 		xVal:         1,
+		crt:          crt,
 	}
 }
 
@@ -40,6 +75,7 @@ func (q *InstructionQueue) Enqueue(instruction *Instruction) {
 }
 
 func (q *InstructionQueue) NextCycle() {
+	q.Draw()
 	q.cycleCounter++
 	q.historicXVal = append(q.historicXVal, q.xVal)
 	q.Execute()
@@ -47,6 +83,16 @@ func (q *InstructionQueue) NextCycle() {
 		q.instructions[i] = q.instructions[i+1]
 	}
 	q.instructions[len(q.instructions)-1] = nil
+}
+
+func (q *InstructionQueue) Draw() {
+	row := (q.cycleCounter / q.crt.width)
+	cycleOffset := row * q.crt.width
+	if math.Abs(float64(q.xVal-(q.cycleCounter-cycleOffset))) >= 2 {
+		q.crt.litPixel[q.cycleCounter] = false
+		return
+	}
+	q.crt.litPixel[q.cycleCounter] = true
 }
 
 func (q *InstructionQueue) Execute() {
@@ -111,10 +157,11 @@ func Day10(inputFile string) int {
 		sum += signal_strength
 	}
 
+	fmt.Println(instructionQueue.crt)
+
 	return sum
 }
 
 func main() {
 	fmt.Println("Day 10, Part 1:", Day10("input.txt"))
-	// fmt.Println("Day 10, Part 2:", Day10_2("input.txt"))
 }
