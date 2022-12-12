@@ -22,3 +22,5 @@
 # Added by cargo
 
 /target
+
+*.pyc
