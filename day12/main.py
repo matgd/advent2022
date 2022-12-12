@@ -27,6 +27,7 @@ class Node:
         
 
 node_matrix: list[list[Node]] = []
+lowest_elevation: list[Node] = []
 start_node_coords = [0, 0]
 end_node_coords = [0, 0]
 
@@ -62,6 +63,11 @@ def day12(input_data: list[list[str]]):
             node = Node(x, y, height)
             node_matrix[y].append(node)
             node.letter = input_data[y][x]
+
+            # Okay, this is not the best way to do this, but it works.
+            # You can notice that every 'b' is x == 1 so we must start on 'x' == 0
+            if node.letter == 'a' and x == 0:
+                lowest_elevation.append(node)
             graph.add_node(node)
 
 
@@ -90,28 +96,28 @@ def day12(input_data: list[list[str]]):
             if left_node:
                 weight = left_node.height - node.height
                 if weight > 1:
-                    weight = 100000
+                    weight = 10000000
                 else:
                     weight = 1
                 graph.add_edge(node, left_node, weight=weight)
             if right_node:
                 weight = right_node.height - node.height
                 if weight > 1:
-                    weight = 100000
+                    weight = 10000000
                 else:
                     weight = 1
                 graph.add_edge(node, right_node, weight=weight)
             if up_node:
                 weight = up_node.height - node.height
                 if weight > 1:
-                    weight = 100000
+                    weight = 10000000
                 else:
                     weight = 1
                 graph.add_edge(node, up_node, weight=weight)
             if down_node:
                 weight = down_node.height - node.height
                 if weight > 1:
-                    weight = 100000
+                    weight = 10000000
                 else:
                     weight = 1
                 graph.add_edge(node, down_node, weight=weight)
@@ -127,6 +133,14 @@ def day12(input_data: list[list[str]]):
         node.stepped = i+1
 
     print(len(path) - 1)
+    paths_lenghts = []
+    for i, starting_point in enumerate(lowest_elevation):
+        path = nx.shortest_path(graph, starting_point, node_matrix[end_y][end_x], weight="weight")
+        paths_lenghts.append(len(path) - 1)
+        if i % 20 == 0:
+            print(i, '/', len(lowest_elevation))
+        
+    print(min(paths_lenghts))
     
 if __name__ == "__main__":
     day12(read_lines("input.txt"))
