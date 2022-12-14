@@ -20,6 +20,7 @@ type Cave struct {
 	width      int
 	height     int
 	restedSand int
+	floor      int
 }
 
 func NewCave() *Cave {
@@ -33,10 +34,10 @@ func NewCave() *Cave {
 		}
 		cave = append(cave, airRow)
 	}
-	return &Cave{cave, width, height, 0}
+	return &Cave{cave, width, height, 0, 0}
 }
 
-func (c *Cave) FillCave(lineStart [2]int, lineEnd [2]int) {
+func (c *Cave) FillCave(lineStart [2]int, lineEnd [2]int, replaceFloor bool) {
 	startX := lineStart[0]
 	startY := lineStart[1]
 	endX := lineEnd[0]
@@ -57,11 +58,20 @@ func (c *Cave) FillCave(lineStart [2]int, lineEnd [2]int) {
 			c.space[startY][x] = ROCK
 		}
 	}
+
+	if replaceFloor {
+		if endY+2 > c.floor {
+			c.floor = endY + 2
+		}
+		if startY+2 > c.floor {
+			c.floor = startY + 2
+		}
+	}
 }
 
 func (c Cave) PrintFrame() {
 	c.PrintExampleArea()
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 }
 
 func recoverIndexError() {
@@ -75,10 +85,14 @@ func (c *Cave) PourSand(startX, startY int) bool {
 	x, y := startX, startY
 	c.space[y][x] = SAND
 
+	if c.space[y+1][x] != AIR && c.space[y+1][x-1] != AIR && c.space[y+1][x+1] != AIR {
+		c.restedSand++
+		return false
+	}
+
 	// Go down until we hit the another sand or rock
 	for y < c.height-1 && y >= 0 && x < c.width-1 && x >= 0 {
 		// c.PrintFrame()
-
 		materialBelow := c.space[y+1][x]
 		switch materialBelow {
 		case AIR:
@@ -138,8 +152,8 @@ func (c *Cave) String() string {
 
 func (c *Cave) PrintExampleArea() {
 	var sb strings.Builder
-	for y := 0; y < 11; y++ {
-		for x := 493; x < 503; x++ {
+	for y := 0; y < 14; y++ {
+		for x := 483; x < 513; x++ {
 			sb.WriteString(string(c.space[y][x]))
 		}
 		sb.WriteString("\n")
@@ -153,7 +167,7 @@ func CoordsToInts(coords string) (int, int) {
 	return x, y
 }
 
-func Day14(inputFile string) int {
+func Day14(inputFile string, part uint8) int {
 	lines := utils.ReadFileLines(inputFile)
 	cave := NewCave()
 	for _, line := range lines {
@@ -161,19 +175,22 @@ func Day14(inputFile string) int {
 		for i := 0; i < len(split)-1; i++ {
 			startX, startY := CoordsToInts(split[i])
 			endX, endY := CoordsToInts(split[i+1])
-			cave.FillCave([2]int{startX, startY}, [2]int{endX, endY})
+			cave.FillCave([2]int{startX, startY}, [2]int{endX, endY}, true)
 		}
+	}
+	if part == 2 {
+		cave.FillCave([2]int{0, cave.floor}, [2]int{cave.width - 1, cave.floor}, false)
 	}
 
 	for cave.PourSand(500, 0) {
 	}
 
-	// fmt.Println(cave.String())
-
 	return cave.restedSand
 }
 
 func main() {
-	fmt.Println("Day 14, Part 1:", Day14("input_example.txt"))
-	fmt.Println("Day 14, Part 1:", Day14("input.txt"))
+	// fmt.Println("Day 14, Part 1:", Day14("input_example.txt", 1))
+	fmt.Println("Day 14, Part 1:", Day14("input.txt", 1))
+	// fmt.Println("Day 14, Part 1:", Day14("input_example.txt", 2))
+	fmt.Println("Day 14, Part 1:", Day14("input.txt", 2))
 }
